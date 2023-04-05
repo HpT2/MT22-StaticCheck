@@ -1,21 +1,39 @@
 from Visitor import Visitor
-
+from StaticError import *
 
 class StaticChecker(Visitor):
     
 	def visitProgram(self, ctx, o):
 		o = [[]]
 		for decl in ctx.decls:
+			#print(decl)
 			o = self.visit(decl, o)
+		return ctx
 
 	def visitVarDecl(self, ctx, o):
-		pass
+		for decl in o[0]:
+			if decl.name == ctx.name:
+				raise Redeclared(Variable(),ctx.name)
+		o[0] += [ctx]
+		return o
 
 	def visitParamDecl(self, ctx, o):
-		pass
+		for decl in o[0]:
+			if decl.name == ctx.name:
+				raise Redeclared(Parameter(),ctx.name)
+		o[0] += [ctx]
+		return o
 
 	def visitFuncDecl(self, ctx, o):
-		pass
+		for decl in o[0]:
+			if decl.name == ctx.name:
+				raise Redeclared(Function(),ctx.name)
+		o[0] += [ctx]
+		env = [[]] + o
+		for param in ctx.params:
+			env = self.visit(param, env)
+		self.visit(ctx.body, env)
+		return o
 
 	def visitBinExpr(self, ctx, o):
 		pass

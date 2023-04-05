@@ -1,0 +1,4 @@
+Program([
+	VarDecl(var, IntegerType)
+	FuncDecl(foo, VoidType, [], None, BlockStmt([]))
+])

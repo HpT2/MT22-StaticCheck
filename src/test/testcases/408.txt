@@ -1,0 +1,4 @@
+
+		a : string;
+		foo:function void(a:integer){}
+		
