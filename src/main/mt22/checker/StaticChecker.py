@@ -1,5 +1,6 @@
 from Visitor import Visitor
 from StaticError import *
+from AST import *
 
 class StaticChecker(Visitor):
     
@@ -14,6 +15,10 @@ class StaticChecker(Visitor):
 		for decl in o[0]:
 			if decl.name == ctx.name:
 				raise Redeclared(Variable(),ctx.name)
+		if ctx.init is not None:
+			expr_type = self.visit(ctx.init, o)
+			if type(expr_type) != type(ctx.typ):
+				raise TypeMismatchInStatement(ctx)
 		o[0] += [ctx]
 		return o
 
@@ -36,28 +41,45 @@ class StaticChecker(Visitor):
 		return o
 
 	def visitBinExpr(self, ctx, o):
-		pass
+		#left_type = self.visit(ctx.left, o)
+		#right_type = self.visit(ctx.right, o)
+		if ctx.op in ['+', '-', '*', '/', '%', '==', '!=', '>', '>=', '<', '<=']:
+			pass
+
+		if ctx.op in ['&&', '||', '!=']:
+			pass
+
+		if ctx.op == "::":
+			pass
 
 	def visitUnExpr(self, ctx, o):
-		pass
+		if ctx.op == '-':
+			pass
+
+		if ctx.op == '!':
+			pass
 
 	def visitId(self, ctx, o):
-		pass
+		for env in o:
+			for var in env:
+				if var.name == ctx.name:
+					return var.typ
+		raise Undeclared(Identifier(), ctx.name)
 
 	def visitArrayCell(self, ctx, o):
 		pass
 
 	def visitIntegerLit(self, ctx, o):
-		pass
+		return IntegerType()
 
 	def visitFloatLit(self, ctx, o):
-		pass
+		return FloatType()
 
 	def visitStringLit(self, ctx, o):
-		pass
+		return StringType()
 
 	def visitBooleanLit(self, ctx, o):
-		pass
+		return BooleanType()
 
 	def visitArrayLit(self, ctx, o):
 		pass
@@ -69,7 +91,12 @@ class StaticChecker(Visitor):
 		pass
 
 	def visitBlockStmt(self, ctx, o):
-		pass
+		env = [[]] + o
+		for stmt in ctx.body:
+			if type(stmt) == VarDecl:
+				env = self.visit(stmt, env)
+			else:
+				self.visit(stmt, env)
 
 	def visitForStmt(self, ctx, o):
 		pass

@@ -1,0 +1,1 @@
+Type mismatch in statement: VarDecl(a, StringType, IntegerLit(1))

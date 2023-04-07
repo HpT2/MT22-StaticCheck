@@ -1,0 +1,3 @@
+Program([
+	FuncDecl(foo, VoidType, [], None, BlockStmt([AssignStmt(Id(a), ArrayCell(a, [IntegerLit(1)]))]))
+])

@@ -84,4 +84,44 @@ class CheckerSuite(unittest.TestCase):
 		expect = """Redeclared Function: a"""
 		self.assertTrue(TestChecker.test(input, expect, 409))
 
+	def test10(self):
+		input = """
+		a : string = "";
+		"""
+		expect = """Program([
+	VarDecl(a, StringType, StringLit())
+])"""
+		self.assertTrue(TestChecker.test(input, expect, 410))
+
+	def test11(self):
+		input = """
+		a : string = 1;
+		"""
+		expect = """"""
+		self.assertTrue(TestChecker.test(input, expect, 411))
+
+	def test12(self):
+		input = """
+		a : string = b;
+		"""
+		expect = """Undeclared Identifier: b"""
+		self.assertTrue(TestChecker.test(input, expect, 412))
+
+	def test14(self):
+		input = """
+		a : integer;
+		b : string = a;
+		"""
+		expect = """"""
+		self.assertTrue(TestChecker.test(input, expect, 414))
+
+	def test15(self):
+		input = """
+		foo: function void (a:integer){
+			a: integer;
+		}
+		"""
+		expect = """"""
+		self.assertTrue(TestChecker.test(input, expect, 415))
+
 	
