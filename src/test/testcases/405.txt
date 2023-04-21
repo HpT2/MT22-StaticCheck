@@ -1,3 +1,5 @@
 
-		foo:function void(a:integer){}
+		main: function void (a:integer, b: string) inherit hoo{
 		
+		}
+		hoo: function void (inherit a:integer){}

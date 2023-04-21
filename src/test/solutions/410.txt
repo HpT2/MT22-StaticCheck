@@ -1,3 +1,1 @@
-Program([
-	VarDecl(a, StringType, StringLit())
-])
+Type mismatch in expression: 

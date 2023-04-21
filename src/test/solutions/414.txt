@@ -1,1 +1,0 @@
-Type mismatch in statement: VarDecl(b, StringType, Id(a))

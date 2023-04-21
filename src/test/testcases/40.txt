@@ -1,0 +1,5 @@
+
+		foo: function void (z:integer, b: string) inherit hoo{
+			print(1);
+		}
+		hoo: function void (inherit a: string){}

@@ -11,10 +11,11 @@ if os.path.isdir('../target/main/mt22/parser') and not '../target/main/mt22/pars
 from MT22Lexer import MT22Lexer
 from MT22Parser import MT22Parser
 from ASTGeneration import ASTGeneration
-from StaticChecker import StaticChecker
-from StaticError import *
 from lexererr import *
 import subprocess
+
+from StaticChecker import StaticChecker
+from StaticError import *
 
 JASMIN_JAR = "./external/jasmin.jar"
 TEST_DIR = "./test/testcases/"
@@ -146,7 +147,6 @@ class TestChecker:
         else:
             inputfile = TestUtil.makeSource(str(input), num)
             asttree = input
-
         TestChecker.check(SOL_DIR, asttree, num)
         dest = open(os.path.join(SOL_DIR, str(num) + ".txt"), "r")
         line = dest.read()
@@ -155,11 +155,10 @@ class TestChecker:
     @staticmethod
     def check(soldir, asttree, num):
         dest = open(os.path.join(soldir, str(num) + ".txt"), "w")
-        #checker = StaticChecker(asttree)
+        checker = StaticChecker(asttree)
         try:
-            #res = checker.check()
-            res = StaticChecker().visit(asttree,None)
-            dest.write(str(res))
+            res = checker.check()
+            #dest.write(str(list(res)))
         except StaticError as e:
             dest.write(str(e))
         finally:

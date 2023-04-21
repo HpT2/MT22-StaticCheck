@@ -1,3 +1,5 @@
 
-		foo:function void(a:integer, a:integer){}
-		
+		main: function void () inherit hoo{
+
+		}
+		hoo: function void (){}

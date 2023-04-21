@@ -1,4 +1,7 @@
-Program([
-	VarDecl(x, IntegerType)
-	VarDecl(y, IntegerType)
-])
+
+		foo: function void (a:integer, b: string) inherit main{
+			super();
+		}
+		main: function void (){
+		
+		}

@@ -1,4 +1,6 @@
 
-		a : integer;
-		b : string = a;
-		
+		main: function void () inherit hoo{
+			super(a);
+		}
+		hoo: function void (inherit a: string){
+		}

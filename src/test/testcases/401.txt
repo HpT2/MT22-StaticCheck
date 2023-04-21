@@ -1,4 +1,4 @@
-Program([
-	VarDecl(x, IntegerType)
-	VarDecl(x, IntegerType)
-])
+
+		main: function auto (a:integer, b: string){
+			return "1";
+		}

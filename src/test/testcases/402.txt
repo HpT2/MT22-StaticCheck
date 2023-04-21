@@ -1,6 +1,7 @@
-Program([
-	VarDecl(x, IntegerType)
-	VarDecl(x, IntegerType)
-	VarDecl(y, IntegerType)
-	VarDecl(y, IntegerType)
-])
+
+		main: function void (a:integer, b: string){
+		
+		}
+		main: function void (a:integer, b: string){
+		
+		}
