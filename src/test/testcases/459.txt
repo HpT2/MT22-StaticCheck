@@ -1,6 +1,6 @@
 
 		main:function void () inherit foo{
-			super(1);
+			super(2);
 			a = 1;
 			b : integer;
 			b = foo(1);

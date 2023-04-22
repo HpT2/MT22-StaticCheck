@@ -178,7 +178,7 @@ class ASTGeneration(MT22Visitor):
         return ArrayType(dimension,type_)
     
     def visitDimension(self, ctx: MT22Parser.DimensionContext):
-        intlist = ctx.intlist().getText().split(',')
+        intlist = [int(x) for x in ctx.intlist().getText().split(',')]
         return intlist
     
     def visitIntlist(self, ctx: MT22Parser.IntlistContext):

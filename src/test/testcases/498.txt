@@ -1,0 +1,36 @@
+
+            gg : auto = 0.0;
+            hh : float = 0.e3 - gg;
+            foo: function integer(){
+            }
+            main: function void() {
+                if(true){
+                    gg = 2.0;
+                } else{
+                    gg = -2.0;
+                }
+                ii : integer;
+                for(ii = 1, ii < 10, ii+1) {
+                    break;
+                }
+                while (ii > 2){
+                    do{
+                        foo();
+                    } while(ii < 2);
+                }
+            }
+            add : function integer(a: integer) inherit foo{
+                //No super needed
+                return 1;
+            }
+            sub : function integer(inherit gg: integer) inherit add{
+                super(1);
+                return 1;
+            }
+            mul : function integer(gg: integer) inherit add{
+                preventDefault();
+                a : auto = 2;
+                return a;
+            }
+            a : integer = 3;
+            

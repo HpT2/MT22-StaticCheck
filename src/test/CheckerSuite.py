@@ -48,7 +48,7 @@ class CheckerSuite(unittest.TestCase):
 		
 		}
 		hoo: function void (inherit a:integer){}"""
-		expect = "Invalid Parameter: a"
+		expect = "Invalid statement in function: main"
 		self.assertTrue(TestChecker.test(input, expect, 405))
 
 	def test6(self):
@@ -90,7 +90,8 @@ class CheckerSuite(unittest.TestCase):
 		hoo: function void (a: string){}"""
 		expect = "Type mismatch in expression: "
 		self.assertTrue(TestChecker.test(input, expect, 409))
-	
+
+
 	def test10(self):
 		input = """
 		main: function void (z:integer, b: string) inherit hoo{
@@ -302,7 +303,7 @@ class CheckerSuite(unittest.TestCase):
 		"""
 		expect = ""
 		self.assertTrue(TestChecker.test(input, expect, 429))
-
+	
 	def test30(self):
 		input = """a:integer ;
 			main:function auto (){
@@ -394,7 +395,7 @@ class CheckerSuite(unittest.TestCase):
 		"""
 		expect = "Undeclared Function: foo"
 		self.assertTrue(TestChecker.test(input, expect, 439))
-
+	
 	def test40(self):
 		input = """a:boolean = foo();
 		foo:function boolean (){}
@@ -424,11 +425,11 @@ class CheckerSuite(unittest.TestCase):
 		foo:function auto (a: boolean){}
 		main:function void(){}
 		"""
-		expect = ""
+		expect = "Type mismatch in expression: BinExpr(+, IntegerLit(1), FuncCall(foo, [FuncCall(foo, [BooleanLit(False)])]))"
 		self.assertTrue(TestChecker.test(input, expect, 443))
 
 	def test44(self):
-		input = """a:integer = 1 + main(main(false));
+		input = """a:boolean =  main(main(false));
 		b: string = main(main(false));
 		main:function auto (a: boolean){}
 		"""
@@ -486,7 +487,7 @@ class CheckerSuite(unittest.TestCase):
 		"""
 		expect = "Type mismatch in statement: AssignStmt(Id(z), StringLit(1))"
 		self.assertTrue(TestChecker.test(input, expect, 449))
-
+	
 	def test50(self):
 		input = """
 		main:function void () inherit foo {
@@ -601,7 +602,7 @@ class CheckerSuite(unittest.TestCase):
 	def test59(self):
 		input = """
 		main:function void () inherit foo{
-			super(1);
+			super(2);
 			a = 1;
 			b : integer;
 			b = foo(1);
@@ -612,7 +613,7 @@ class CheckerSuite(unittest.TestCase):
 		"""
 		expect = "Type mismatch in statement: ReturnStmt(BooleanLit(False))"
 		self.assertTrue(TestChecker.test(input, expect, 459))
-
+	
 	def test60(self):
 		input = """
 		main:function void () inherit foo{
@@ -665,3 +666,187 @@ class CheckerSuite(unittest.TestCase):
 		"""
 		expect = ""
 		self.assertTrue(TestChecker.test(input, expect, 463))
+
+	def test64(self):
+		input = """
+		a: array [1] of integer = {"1"};
+		"""
+		expect = "Type mismatch in Variable Declaration: VarDecl(a, ArrayType([1], IntegerType), ArrayLit([StringLit(1)]))"
+		self.assertTrue(TestChecker.test(input, expect, 464))
+
+	def test65(self):
+		input = """
+		a: array [1] of integer = {"1",1};
+		"""
+		expect = "Illegal array literal: ArrayLit([StringLit(1), IntegerLit(1)])"
+		self.assertTrue(TestChecker.test(input, expect, 465))
+	
+	def test66(self):
+		input = """
+		a: array [1,2] of integer = {{1,1}, {"a","a"}};
+		"""
+		expect = "Illegal array literal: ArrayLit([ArrayLit([IntegerLit(1), IntegerLit(1)]), ArrayLit([StringLit(a), StringLit(a)])])"
+		self.assertTrue(TestChecker.test(input, expect, 466))
+
+	def test67(self):
+		input = """
+		a: array [1,2] of integer = {{{2},{2}}};
+		"""
+		expect = "Type mismatch in Variable Declaration: VarDecl(a, ArrayType([1, 2], IntegerType), ArrayLit([ArrayLit([ArrayLit([IntegerLit(2)]), ArrayLit([IntegerLit(2)])])]))"
+		self.assertTrue(TestChecker.test(input, expect, 467))
+
+	def test68(self):
+		input = """
+		a: auto;
+		"""
+		expect = "Invalid Variable: a"
+		self.assertTrue(TestChecker.test(input, expect, 468))
+
+	def test69(self):
+		input = """
+		a: array [1] of integer;
+		main: function void (){
+			a[0] = 1; 
+		}
+		"""
+		expect = ""
+		self.assertTrue(TestChecker.test(input, expect, 469))
+
+	def test70(self):
+		input = """
+		a: array [1] of integer;
+		main: function void (){
+			a[0] = "1"; 
+		}
+		"""
+		expect = "Type mismatch in statement: AssignStmt(ArrayCell(a, [IntegerLit(0)]), StringLit(1))"
+		self.assertTrue(TestChecker.test(input, expect, 470))
+
+	def test71(self):
+		input = """
+		a: array [1] of integer;
+		main: function void (){
+			a = {1}; 
+		}
+		"""
+		expect = ""
+		self.assertTrue(TestChecker.test(input, expect, 471))
+
+	def test72(self):
+		input = """
+		a: array [1] of integer;
+		main: function void (){
+			a = {"1"}; 
+		}
+		"""
+		expect = "Type mismatch in statement: AssignStmt(Id(a), ArrayLit([StringLit(1)]))"
+		self.assertTrue(TestChecker.test(input, expect, 472))
+
+	def test73(self):
+		input = """
+		a: array [1] of integer;
+		main: function void (){
+			a = {1,1}; 
+		}
+		"""
+		expect = "Type mismatch in statement: AssignStmt(Id(a), ArrayLit([IntegerLit(1), IntegerLit(1)]))"
+		self.assertTrue(TestChecker.test(input, expect, 473))
+
+	def test74(self):
+		input = """
+		sub:function auto (){
+		return 1;
+		}
+		x: float = sub() + 2.0;
+		y: integer = sub();
+		main: function void (){}
+		"""
+		expect = ""
+		self.assertTrue(TestChecker.test(input, expect, 474))
+	
+
+	def test75(self):
+		input = """
+		main: function void() {
+            a: string = "ghgf"::Ha({{{1,2,3}}});
+        }
+        
+        Ha: function string(e:array [1,1,3] of integer) {
+            return e[1,2+e[1,1]];
+        }
+        
+        Ha: function auto() {
+            a: auto = {{1,2,3},{1,2,3}};
+            return a;
+        }"""
+		expect = "Type mismatch in expression: BinExpr(+, IntegerLit(2), ArrayCell(e, [IntegerLit(1), IntegerLit(1)]))"
+		self.assertTrue(TestChecker.test(input, expect, 475))
+	
+	def test76(self):
+		input = """
+		foo : function auto () {
+			if (true) {
+       	 		return 4;
+    		} else {
+        		return true;
+    		}
+		}"""
+		expect = "Type mismatch in statement: ReturnStmt(BooleanLit(True))"
+		self.assertTrue(TestChecker.test(input, expect, 476))
+
+	def test77(self):
+		input = """
+		foo : function auto () {
+			return 1;
+			return "2";
+		}"""
+		expect = "No entry point"
+		self.assertTrue(TestChecker.test(input, expect, 477))
+
+	def test78(self):
+		input = """
+		foo : function auto () {
+			if(true){
+				return "a";
+			}
+			return 1;
+		}"""
+		expect = "Type mismatch in statement: ReturnStmt(IntegerLit(1))"
+		self.assertTrue(TestChecker.test(input, expect, 478))
+
+	def test79(self):
+		input = """
+        Ha: function array [2, 3] of integer() {
+            a: auto = {{1,2,{7}},{1,2,3}};
+            return a;
+        }
+        
+        main: function void() {
+            
+        }"""
+		expect = "Illegal array literal: ArrayLit([IntegerLit(1), IntegerLit(2), ArrayLit([IntegerLit(7)])])"
+		self.assertTrue(TestChecker.test(input, expect, 479))
+	
+	def test80(self):
+		input = """
+        foo:function void() inherit main {
+			preventDefault();
+        }
+        
+        main: function void() {
+            a:integer;
+        }"""
+		expect = ""
+		self.assertTrue(TestChecker.test(input, expect, 480))
+
+	def test81(self):
+		input = """
+        foo:function void() inherit main {
+			preventDefault(1);
+        }
+        
+        main: function void() {
+            a:integer;
+        }"""
+		expect = "Type mismatch in expression: IntegerLit(1)"
+		self.assertTrue(TestChecker.test(input, expect, 481))
