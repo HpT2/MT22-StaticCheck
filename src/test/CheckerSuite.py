@@ -729,7 +729,7 @@ class CheckerSuite(unittest.TestCase):
 			a = {1}; 
 		}
 		"""
-		expect = ""
+		expect = "Type mismatch in statement: AssignStmt(Id(a), ArrayLit([IntegerLit(1)]))"
 		self.assertTrue(TestChecker.test(input, expect, 471))
 
 	def test72(self):
@@ -977,7 +977,7 @@ class CheckerSuite(unittest.TestCase):
         """
 		expect = "Type mismatch in statement: AssignStmt(Id(a), BooleanLit(True))"
 		self.assertTrue(TestChecker.test(input, expect, 491))
-
+	
 	def test92(self):
 		input = """
 			sqrt:function float (delta:float){}
@@ -1052,7 +1052,7 @@ class CheckerSuite(unittest.TestCase):
 				a[1*a[1,1,1,1],2-3*4+5,a[1,2,3,4]-a[2,3,4,5]]= {1,2,3,4};
 			}
         """
-		expect = ""
+		expect = "Type mismatch in statement: AssignStmt(ArrayCell(a, [BinExpr(*, IntegerLit(1), ArrayCell(a, [IntegerLit(1), IntegerLit(1), IntegerLit(1), IntegerLit(1)])), BinExpr(+, BinExpr(-, IntegerLit(2), BinExpr(*, IntegerLit(3), IntegerLit(4))), IntegerLit(5)), BinExpr(-, ArrayCell(a, [IntegerLit(1), IntegerLit(2), IntegerLit(3), IntegerLit(4)]), ArrayCell(a, [IntegerLit(2), IntegerLit(3), IntegerLit(4), IntegerLit(5)]))]), ArrayLit([IntegerLit(1), IntegerLit(2), IntegerLit(3), IntegerLit(4)]))"
 		self.assertTrue(TestChecker.test(input, expect, 495))
 
 	def test96(self):

@@ -38,7 +38,7 @@ class StaticChecker(Visitor):
 				if decl.name == 'main' and len(decl.params)==0 and type(decl.return_type) == VoidType:
 					entry = True
 
-		built_in = [Prototype('preventDefault', VoidType(), [], None), Prototype('printString', VoidType(), [ParamProto('anArg',StringType(),None)], None),\
+		built_in = [Prototype('super', VoidType(), [], None),Prototype('preventDefault', VoidType(), [], None), Prototype('printString', VoidType(), [ParamProto('anArg',StringType(),None)], None),\
 	      Prototype('readString',StringType(),[], None), Prototype('printBoolean',VoidType(),[ParamProto('anArg',BooleanType(),None)],None),\
 			Prototype('readBoolean',BooleanType(),[], None), Prototype('writeFloat',VoidType(),[ParamProto('anArg',FloatType(),None)],None),\
 				Prototype('readFloat', FloatType(),[],None), Prototype('printInteger', VoidType(),[ParamProto('anArg', IntegerType(),None)],None),\
@@ -95,6 +95,7 @@ class StaticChecker(Visitor):
 				raise TypeMismatchInVarDecl(ctx)
 		
 		o[0] += [ctx]
+
 		return o
 
 	def visitParamDecl(self, ctx, o):
@@ -159,12 +160,15 @@ class StaticChecker(Visitor):
 						
 						
 						if param.inherit:
-							for decl in o[0]:
+							for decl in env[0]:
 								if param.name == decl.name: raise Invalid(Parameter(), param.name)
-								else: env[0] += [ParamDecl(param.name, param.typ, False, False)]
-
 							parent_params.append(param.name)
+							env[0] += [ParamDecl(param.name, param.typ, False, False)]
+
+							
+
 					
+
 					superCall = ctx.body.body[0]
 					if len(superCall.args) < len(parent.params): raise TypeMismatchInExpression(None)
 					if len(superCall.args) > len(parent.params): raise TypeMismatchInExpression(superCall.args[len(parent.params)])
@@ -173,14 +177,17 @@ class StaticChecker(Visitor):
 					for arg in superCall.args:
 						arg_type, env = self.visit(arg, env)
 
-						if arg_type == Prototype:
+						if type(arg_type) == IntegerType and type(parent.params[i].typ) == FloatType:
+							arg_type = FloatType()
+
+						if type(arg_type) == Prototype:
 							for proto in o[-2]:
 								if proto.name == arg_type.name:
 									arg_type.return_type = parent.params[i].typ
 									arg_type = parent.params[i].typ
 									break
 						
-						if arg_type == AutoType:
+						if type(arg_type) == AutoType:
 							for decl in o[0]:
 								if decl.name == arg.name:
 									decl.typ = parent.params[i].typ
@@ -231,7 +238,7 @@ class StaticChecker(Visitor):
 		if type(right_type) == Prototype:
 				for prototype in o[-2]:
 					if prototype.name == right_type.name:
-							prototype.return_type = leftt_type
+							prototype.return_type = left_type
 							right_type = left_type
 							break
 					
@@ -258,16 +265,14 @@ class StaticChecker(Visitor):
 			return (BooleanType(), o)
 		
 		if ctx.op in ['==', '!=']:
-			
-			if type(left_type) != type(right_type):
-				raise TypeMismatchInExpression(ctx)
-			if type(left_type) != BooleanType and type(left_type) != IntegerType:
+
+			if (type(left_type) != BooleanType and type(left_type) != IntegerType) or (type(right_type) != BooleanType and type(right_type) != IntegerType) :
 				raise TypeMismatchInExpression(ctx)
 
 			return (BooleanType(), o)
 		
 		if ctx.op in ['>','<','>=','<=']:
-			if type(left_type) != FloatType and type(left_type) != IntegerType and type(right_type) != FloatType and type(right_type) != IntegerType:
+			if (type(left_type) != FloatType and type(left_type) != IntegerType) or (type(right_type) != FloatType and type(right_type) != IntegerType):
 				raise TypeMismatchInExpression(ctx)
 			return (BooleanType(), o)
 		
@@ -325,7 +330,7 @@ class StaticChecker(Visitor):
 			cell_type, o = self.visit(ctx.cell[i], o)
 
 			if type(cell_type) == AutoType:
-				x = 0
+				x = False
 				for env in o:
 					if x == len(o) - 2:
 						break
@@ -333,8 +338,9 @@ class StaticChecker(Visitor):
 						if decl.name == ctx.cell[i].name:
 							decl.typ = IntegerType()
 							cell_type = IntegerType()
+							x = True
 							break
-					x += 1
+
 
 			if type(cell_type) == Prototype:
 				for prototype in o[-2]:
@@ -379,7 +385,7 @@ class StaticChecker(Visitor):
 				
 				for i in range(len(cur_type.dimensions)):
 					if cur_type.dimensions[i] != prev_type.dimensions[i]:
-						raise (ctx)
+						raise IllegalArrayLiteral(ctx)
 				
 				if type(cur_type.typ) != type(prev_type.typ):
 					raise IllegalArrayLiteral(ctx)
@@ -405,6 +411,19 @@ class StaticChecker(Visitor):
 		
 		for i in range(len(ctx.args)):
 			arg_type, o = self.visit(ctx.args[i],o)
+			
+			if type(arg_type) == AutoType:
+				x = False
+				for env in o:
+					if x:
+						break
+					for decl in env:
+						if decl.name == ctx.args[i].name:
+							decl.typ = proto.params[i].typ
+							arg_type = proto.params[i].typ
+							x= True
+							break
+
 
 			if type(proto.params[i].typ) == AutoType:
 				proto.params[i].typ = arg_type
@@ -421,15 +440,35 @@ class StaticChecker(Visitor):
 
 			if type(proto.params[i].typ) != type(arg_type):
 				raise TypeMismatchInExpression(ctx)
-		
+
+			i += 1
 		
 
 		return (proto.return_type, o) if type(proto.return_type) != AutoType else (proto, o)
 
 
 	def visitAssignStmt(self, ctx, o):
-		left_type, o = self.visit(ctx.lhs, o)
+
 		right_type, o = self.visit(ctx.rhs, o)
+
+		for prototype in o[-2]:
+			if prototype.name == o[-1][-1]:
+				proto = prototype
+				break
+		
+		isNonAutoParam = False
+		for param in proto.params:
+			if param.name == ctx.lhs.name and type(param.typ) != AutoType:
+				left_type = param.typ
+				isNonAutoParam = True
+				break
+		if not isNonAutoParam:
+			left_type, o = self.visit(ctx.lhs, o)
+		
+		
+		
+		if type(left_type) == ArrayType:
+			raise TypeMismatchInStatement(ctx)
 
 		if type(right_type) == Prototype:
 				for prototype in o[-2]:
@@ -438,34 +477,21 @@ class StaticChecker(Visitor):
 						right_type = left_type
 						break
 		
-		if type(left_type) == ArrayType and type(right_type) == ArrayType:
-			if len(left_type.dimensions) != len(right_type.dimensions):
-					raise TypeMismatchInStatement(ctx)
-				
-			for i in range(len(left_type.dimensions)):
-				if left_type.dimensions[i] != right_type.dimensions[i]:
-					raise TypeMismatchInStatement(ctx)
-
-			if type(left_type.typ) != type(right_type.typ):
-				raise TypeMismatchInStatement(ctx)
-		
-			return o
-		
 		if type(left_type) == FloatType and type(right_type) == IntegerType:
 				right_type = FloatType()
 
 		if type(left_type) == AutoType:
-			i = 0
+			i = False
 			for env in o:
-				if i == len(o) - 2:
+				if i:
 					break
 				for decl in env:
 					if decl.name == ctx.lhs.name:
 						decl.typ = right_type
 						left_type = right_type
+						i = True
 						break
-				i += 1
-
+				
 		if type(left_type) != type(right_type) or type(left_type) == ArrayType:
 			raise TypeMismatchInStatement(ctx)
 		
@@ -487,15 +513,15 @@ class StaticChecker(Visitor):
 
 		if type(scalar_var_type) == AutoType:
 			scalar_var_type = IntegerType()
-			x = 0
+			x = False
 			for env in o:
-				if x == len(o) - 2:
+				if x:
 					break
 				for decl in env:
 					if decl. name == ctx.init.lhs.name:
 						decl.typ = IntegerType()
+						x = True
 						break
-				x += 1
 			
 
 		if type(scalar_var_type) != IntegerType:
@@ -519,7 +545,7 @@ class StaticChecker(Visitor):
 			raise TypeMismatchInStatement(ctx)
 		env = [[]] + o
 		env[-1] = [1,2] + env[-1]
-		o = self.visit(ctx.stmt, env)
+		env = self.visit(ctx.stmt, env)
 		return o
 		
 		
@@ -601,7 +627,7 @@ class StaticChecker(Visitor):
 				prototype = proto
 				break
 
-		if prototype.returned and 2 not in o[-1]:
+		if (prototype.returned and 2 not in o[-1]) or (3 in o[-1]):
 			return o
 
 		if not ctx.expr:
@@ -609,17 +635,20 @@ class StaticChecker(Visitor):
 		else:
 			expr_type,o = self.visit(ctx.expr, o)
 
+		
+
 		if type(expr_type) == AutoType:
 			expr_type = prototype.return_type
-			x = 0
+			x = False
 			for env in o:
-				if x == len(o) - 2:
+				if x :
 					break
 				for decl in env:
 					if decl.name == ctx.expr.name:
 						decl.typ = prototype.return_type
+						x = True
 						break
-				x += 1
+
 
 
 		if type(prototype.return_type) == AutoType:
@@ -634,9 +663,16 @@ class StaticChecker(Visitor):
 		if 2 not in o[-1]:
 			prototype.returned = True
 
+		if 2 in o[-1]:
+			o[-1].remove(2)
+			o[-1] = [3] + o[-1]
+
 		return o
 
 	def visitCallStmt(self, ctx, o):
+		if ctx.name == 'super' or ctx.name == 'preventDefault':
+			raise InvalidStatementInFunction(Function(),o[-1][-1])
+
 		exist = False
 		for proto in o[-2]:
 			if proto.name == ctx.name:
@@ -647,6 +683,11 @@ class StaticChecker(Visitor):
 		if not exist:
 			raise Undeclared(Function(), ctx.name)
 		
+		for p in o[-2]:
+			if p.name == o[-1][-1]:
+				proto = p
+				break
+
 		if len(ctx.args) != len(prototype.params):
 			raise TypeMismatchInStatement(ctx)
 		
@@ -656,17 +697,24 @@ class StaticChecker(Visitor):
 			if type(prototype.params[i].typ) == AutoType:
 				prototype.params[i].typ = arg_type
 
-			x = 0
+			x = False
 			if type(arg_type) == AutoType:
+				for param in proto.params:
+					if param.name == ctx.args[i].name:
+						param.typ = prototype.params[i].typ
+						arg_type = prototype.params[i].typ
+						break
+
 				for env in o:
-					if x == len(o) - 2:
+					if x :
 						break
 					for decl in env:
 						if decl. name == ctx.args[i].name:
 							decl.typ = prototype.params[i].typ
 							arg_type = prototype.params[i].typ
+							x = True
 							break
-					x += 1
+
 				
 
 			if type(arg_type) == Prototype:
