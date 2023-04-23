@@ -850,3 +850,264 @@ class CheckerSuite(unittest.TestCase):
         }"""
 		expect = "Type mismatch in expression: IntegerLit(1)"
 		self.assertTrue(TestChecker.test(input, expect, 481))
+
+	def test82(self):
+		input = """
+            foo: function integer (a:integer){
+               for (a = "1",a<1, 1){}
+            }
+            """
+		expect = "Type mismatch in statement: AssignStmt(Id(a), StringLit(1))"
+		self.assertTrue(TestChecker.test(input, expect, 482))
+	
+	def test83(self):
+		input = """
+            foo: function integer (a:auto){
+               for (a = 1,a<1, 1){}
+	       		a = "a";
+            }
+            """
+		expect = "Type mismatch in statement: AssignStmt(Id(a), StringLit(a))"
+		self.assertTrue(TestChecker.test(input, expect, 483))
+
+	def test84(self):
+		input = """
+            foo: function integer (a:auto){
+               for (a = "1",a<1, 1){}
+	       		a = "a";
+            }
+            """
+		expect = "Type mismatch in statement: AssignStmt(Id(a), StringLit(1))"
+		self.assertTrue(TestChecker.test(input, expect, 484))
+
+	def test85(self):
+		input = """
+			sqrt:function float (delta:float){}
+            quadratic_equation_solver: function array [2] of float (a:float,b:float,c:float){
+                delta:float = b*b - 4*a*c;
+                x1:float = (-b - sqrt(delta))/(2*a) ;
+                x2:float = (-b + sqrt(delta))/(2*a) ;
+                return {x1,x2};
+            }
+            main:function void (){
+                writeFloat(quadratic_equation_solver(1,2,1));
+            }
+        """
+		expect = "Type mismatch in statement: CallStmt(writeFloat, FuncCall(quadratic_equation_solver, [IntegerLit(1), IntegerLit(2), IntegerLit(1)]))"
+		self.assertTrue(TestChecker.test(input, expect, 485))
+
+	def test86(self):
+		input = """
+			sqrt:function float (delta:float){}
+            quadratic_equation_solver: function array [2] of float (a:float,b:float,c:float){
+                delta:float = b*b - 4*a*c;
+                x1:float = (-b - sqrt(delta))/(2*a) ;
+                x2:float = (-b + sqrt(delta))/(2*a) ;
+                return x1 * x2;
+            }
+            main:function void (){
+                writeFloat(quadratic_equation_solver(1,2,1));
+            }
+        """
+		expect = "Type mismatch in statement: ReturnStmt(BinExpr(*, Id(x1), Id(x2)))"
+		self.assertTrue(TestChecker.test(input, expect, 486))
+
+	def test87(self):
+		input = """
+			sqrt:function float (delta:float){}
+            quadratic_equation_solver: function float (a:float,b:float,c:float){
+                delta:float = b*b - 4*a*c;
+                x1:float = (-b - sqrt(delta))/(2*a) ;
+                x2:float = (-b + sqrt(delta))/(2*a) ;
+                return x1 * x2;
+            }
+            main:function void (){
+                writeFloat(quadratic_equation_solver(1,2,1));
+            }
+        """
+		expect = ""
+		self.assertTrue(TestChecker.test(input, expect, 487))
+
+	def test88(self):
+		input = """
+            quadratic_equation_solver: function float (a:float,b:float,c:float){
+				return a;
+				return "1";
+				return true;
+            }
+            main:function void (){
+                writeFloat(quadratic_equation_solver(1,2,1));
+            }
+        """
+		expect = ""
+		self.assertTrue(TestChecker.test(input, expect, 488))
+
+	def test89(self):
+		input = """
+            quadratic_equation_solver: function float (a:float,b:float,c:float){
+				if(true){
+					return 1;
+				}
+				return true;
+            }
+        """
+		expect = "Type mismatch in statement: ReturnStmt(BooleanLit(True))"
+		self.assertTrue(TestChecker.test(input, expect, 489))
+
+	def test90(self):
+		input = """
+            quadratic_equation_solver: function float (a:auto,b:float,c:float){
+				if(true){
+					return a;
+				}
+				return true;
+            }
+        """
+		expect = "Type mismatch in statement: ReturnStmt(BooleanLit(True))"
+		self.assertTrue(TestChecker.test(input, expect, 490))
+
+	def test91(self):
+		input = """
+            quadratic_equation_solver: function float (a:auto,b:float,c:float){
+				if(true){
+					return a;
+				}
+				a = true;
+            }
+        """
+		expect = "Type mismatch in statement: AssignStmt(Id(a), BooleanLit(True))"
+		self.assertTrue(TestChecker.test(input, expect, 491))
+
+	def test92(self):
+		input = """
+			sqrt:function float (delta:float){}
+            quadratic_equation_solver: function array [2] of float (a:float,b:float,c:float){
+                delta:float = b*b - 4*a*c;
+                x1:float = (-b - sqrt(delta))/(2*a) ;
+                x2:float = (-b + sqrt(delta))/(2*a) ;
+                return {x1 , x2};
+            }
+	     	 quartic_equation_solver: function array [4] of float(a:float,b:float,c:float){
+                res: array [2] of float = quadratic_equation_solver(a,b,c);
+                x1,x2,x3,x4:float = -sqrt(res[0]),sqrt(res[0]),-sqrt(res[1]),sqrt(res[1]);
+                return {x1,x2,x3,x4};
+            }
+
+            main:function void (){
+				res: array [4] of float = quartic_equation_solver(1,2,1);
+                writeFloat(res[0]);
+            }
+        """
+		expect = ""
+		self.assertTrue(TestChecker.test(input, expect, 492))
+
+	def test93(self):
+		input = """
+            a:string = "Hello world";
+	    	main: function void (){
+				a = "Hi" :: (a :: a);
+				i: float = 2;
+				while (true){
+					if (i > 4) printString(a);
+					else break;
+					i = i -1;
+				}
+
+			}
+        """
+		expect = ""
+		self.assertTrue(TestChecker.test(input, expect, 493))
+
+	def test94(self):
+		input = """
+	    	main: function void (){
+				a:string = "a";
+				i: float = 2;
+				while (true){
+					if (i > 4) printString(a);
+					else while (true){
+						if (i > 4) printString(a);
+						else while (true){
+							if (i > 4) printString(a);
+							else break;
+							i = i -1;
+						}
+						i = i -1;
+						continue;
+					}
+					i = i -1;
+					break;
+				}
+
+			}
+        """
+		expect = ""
+		self.assertTrue(TestChecker.test(input, expect, 494))
+
+	
+	def test95(self):
+		input = """
+	    	main: function void (){
+				a : array [1,2,3,4] of integer = {{{{1,1,1,1},{1,1,1,1},{1,1,1,1}},{{1,1,1,1},{1,1,1,1},{1,1,1,1}}}};
+				a[1*a[1,1,1,1],2-3*4+5,a[1,2,3,4]-a[2,3,4,5]]= {1,2,3,4};
+			}
+        """
+		expect = ""
+		self.assertTrue(TestChecker.test(input, expect, 495))
+
+	def test96(self):
+		input = """
+	    	main: function void (){
+				a : array [1,2,3,4] of integer = {{{{1,1,1,1},{1,1,1,1},{1,1,1,1}},{{1,1,1,1},{1,1,1,1},{1,1,1,1}}}};
+				a[1*a[1,1,1,1],2-3*4+5,a[1,2,3,4]::"2"]= {1,2,3,4};
+			}
+        """
+		expect = "Type mismatch in expression: BinExpr(::, ArrayCell(a, [IntegerLit(1), IntegerLit(2), IntegerLit(3), IntegerLit(4)]), StringLit(2))"
+		self.assertTrue(TestChecker.test(input, expect, 496))
+
+	def test97(self):
+		input = """
+	    	main: function void (){
+				a : array [1,2,3,4] of string;
+				a["1"::a[1,1,1,1],2-3*4+5,a[1,2,3,4]::a[2,3,4,5]]= {1,2,3,4};
+			}
+        """
+		expect = "Type mismatch in expression: ArrayCell(a, [BinExpr(::, StringLit(1), ArrayCell(a, [IntegerLit(1), IntegerLit(1), IntegerLit(1), IntegerLit(1)])), BinExpr(+, BinExpr(-, IntegerLit(2), BinExpr(*, IntegerLit(3), IntegerLit(4))), IntegerLit(5)), BinExpr(::, ArrayCell(a, [IntegerLit(1), IntegerLit(2), IntegerLit(3), IntegerLit(4)]), ArrayCell(a, [IntegerLit(2), IntegerLit(3), IntegerLit(4), IntegerLit(5)]))])"
+		self.assertTrue(TestChecker.test(input, expect, 497))
+
+	def test98(self):
+		input = """
+	    	main: function void (){
+				readFloat();
+			}
+        """
+		expect = ""
+		self.assertTrue(TestChecker.test(input, expect, 498))
+
+	def test99(self):
+		input = """
+	    	main: function void (){
+				a: array[1,2] of float = {{readFloat(),readFloat()}};
+			}
+        """
+		expect = ""
+		self.assertTrue(TestChecker.test(input, expect, 499))
+
+	def test100(self):
+		input = """
+	    	main: function void (){
+				a: integer;
+				for (a=1, a < 2, a -1){
+					continue;
+					do {
+						break;
+						c : array[2] of boolean;
+						b:boolean = true||false&&c[1,2];
+					}while(false);
+				}
+			}
+        """
+		expect = "Type mismatch in expression: ArrayCell(c, [IntegerLit(1), IntegerLit(2)])"
+		self.assertTrue(TestChecker.test(input, expect, 500))
+
+

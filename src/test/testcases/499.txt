@@ -1,47 +1,5 @@
 
-            ab, bc, cd: integer = 1_2, 23_33, 3_2_2_1;
-            b : integer = 1_2+3_2; // coment commeeenasdk
-            c : integer = 1_2_3-add(1,2,3);
-            d : integer = 69*69;
-            //FLOAT
-            _65 : float = 1.23; //_65 is an ID
-            e : float = 69. - 69.0 * 0.0 / _65 / 3;
-            x : float = 1.23;
-            y : float = 1.2e3+1.2;
-            z : float = 7E-2 / 7.e2;
-            t : float = 1_5_6.9e25;
-            u : float = 1_5_6.9e-25;
-            aa: float = 1_5_6.9e13;
-            bb: float = 1.e2;
-            cc: float = .9e3;
-            dd: float = .e23;
-            ee: float = 1.;
-            ff: float = 69.9000;
-            gg : auto = 0.0;
-            hh : float = 0.e3 - gg;
-            ii : float = .1e2 - 2. + .1e+2;
-
-            /* STRING*/
-            str2 : string = "Multiple line string";
-            str3 : string = str2 :: str2;
-            this_is_a_very_very_long_name_for_an_id : string = " " :: str3;
-            xs : string = "abc";
-            ys : string = "ab // cd";
-            zs : string = " ab /* cd */";
-            cs : string = " ab unclose";
-
-            truer : boolean = true;
-            falser : boolean = false;
-            fur : auto = true || true || false;
-            truer_than_truth : boolean = true || false && true;
-            _hanser_bronya : boolean = z >= y;
-            nestedtruth : auto = (x>=y) != ((y<=x) == (1 < 2));
-            /* Array
-            Test ? Array is still bug bruh*/
-            aaar : array[2] of float;
-            caar : array[1] of boolean = { true };
-            main: function void() {
-            }
-            add : function integer(a: integer, b: integer, c: integer){
-            }
-            
+	    	main: function void (){
+				a: array[1,2] of float = {{readFloat(),readFloat()}};
+			}
+        

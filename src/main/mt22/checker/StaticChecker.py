@@ -64,9 +64,9 @@ class StaticChecker(Visitor):
 
 		if ctx.init:
 			init_type, o = self.visit(ctx.init, o)
-
+			
 			if type(init_type) == ArrayType and type(ctx.typ) == ArrayType:
-
+				
 				if len(init_type.dimensions) != len(ctx.typ.dimensions):
 					raise TypeMismatchInVarDecl(ctx)
 				
@@ -237,8 +237,9 @@ class StaticChecker(Visitor):
 					
 
 		if ctx.op in ['+', '-','*','/']:
-
+			
 			if (type(left_type) != FloatType and type(left_type) != IntegerType) or (type(right_type) != FloatType and type(right_type) != IntegerType):
+				
 				raise TypeMismatchInExpression(ctx)
 			
 			if type(left_type) == FloatType or type(right_type) == FloatType:
@@ -484,9 +485,23 @@ class StaticChecker(Visitor):
 	def visitForStmt(self, ctx, o):
 		scalar_var_type,o = self.visit(ctx.init.lhs, o)
 
+		if type(scalar_var_type) == AutoType:
+			scalar_var_type = IntegerType()
+			x = 0
+			for env in o:
+				if x == len(o) - 2:
+					break
+				for decl in env:
+					if decl. name == ctx.init.lhs.name:
+						decl.typ = IntegerType()
+						break
+				x += 1
+			
+
 		if type(scalar_var_type) != IntegerType:
 			raise TypeMismatchInStatement(ctx)
 		
+		o = self.visit(ctx.init, o)
 		cond_type,o = self.visit(ctx.cond, o)
 
 		if type(cond_type) == Prototype:
@@ -594,9 +609,24 @@ class StaticChecker(Visitor):
 		else:
 			expr_type,o = self.visit(ctx.expr, o)
 
+		if type(expr_type) == AutoType:
+			expr_type = prototype.return_type
+			x = 0
+			for env in o:
+				if x == len(o) - 2:
+					break
+				for decl in env:
+					if decl.name == ctx.expr.name:
+						decl.typ = prototype.return_type
+						break
+				x += 1
+
+
 		if type(prototype.return_type) == AutoType:
 			prototype.return_type = expr_type
 		
+		if type(expr_type) == IntegerType and type(prototype.return_type) == FloatType:
+			expr_type = FloatType()
 
 		if type(expr_type) != type(prototype.return_type):
 			raise TypeMismatchInStatement(ctx)
